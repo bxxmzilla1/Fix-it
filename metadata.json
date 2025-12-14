@@ -1,0 +1,7 @@
+{
+  "name": "FixIt AI",
+  "description": "An AI-powered construction assistant that visualizes repairs. Upload a photo of a defect, describe the fix, and see a photorealistic result instantly.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
