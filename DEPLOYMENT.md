@@ -122,3 +122,4 @@ npm run preview
 - Add more offline caching strategies if needed
 - Test on various devices and browsers
 
+

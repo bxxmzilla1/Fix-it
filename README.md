@@ -15,6 +15,7 @@ View your app in AI Studio: https://ai.studio/apps/drive/13PZlodUxkvDtcRzuy7ntMz
 - 📸 **Easy Photo Upload** - Camera or file upload support
 - 🔄 **Offline Support** - Works offline with service workers
 - ⚡ **Fast & Responsive** - Optimized for all devices
+- 🔒 **Secure** - API keys are kept server-side, never exposed to clients
 
 ## Run Locally
 
@@ -38,11 +39,23 @@ View your app in AI Studio: https://ai.studio/apps/drive/13PZlodUxkvDtcRzuy7ntMz
    ```
 
 4. Run the development server:
+
+   **Option A: Using Vercel CLI (Recommended for API routes)**
+   ```bash
+   # Install Vercel CLI if you haven't
+   npm i -g vercel
+   
+   # Run Vercel dev server (handles API routes)
+   vercel dev
+   ```
+
+   **Option B: Using Vite only (API routes won't work locally)**
    ```bash
    npm run dev
    ```
+   Note: For local API testing, use Option A or deploy to Vercel.
 
-5. Open your browser and navigate to `http://localhost:3000`
+5. Open your browser and navigate to `http://localhost:3000` (or the port shown)
 
 ## Build for Production
 
@@ -110,15 +123,25 @@ This app is configured as a Progressive Web App with:
 
 ```
 fixit-ai/
+├── api/                 # Serverless API routes (secure backend)
+│   └── generate-fix.ts  # Gemini API endpoint (keeps API key secure)
 ├── public/              # Static assets and PWA icons
 ├── components/          # React components
-├── services/            # API services
+├── services/            # Client-side API services
 ├── App.tsx              # Main app component
 ├── index.html           # HTML entry point
 ├── vite.config.ts       # Vite configuration
 ├── vercel.json          # Vercel deployment config
 └── package.json         # Dependencies
 ```
+
+## Security
+
+**Important:** Your Gemini API key is now **secure** and **never exposed** to users:
+- ✅ API key is stored server-side only (in Vercel environment variables)
+- ✅ All Gemini API calls go through `/api/generate-fix` serverless function
+- ✅ Client-side code never sees or contains the API key
+- ✅ API key is excluded from the client bundle
 
 ## Environment Variables
 
