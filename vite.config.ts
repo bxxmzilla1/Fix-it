@@ -77,6 +77,10 @@ export default defineConfig(({ mode }) => {
         })
       ],
       // API key is now server-side only - removed from client bundle for security
+      define: {
+        'import.meta.env.VITE_SUPABASE_URL': JSON.stringify(env.VITE_SUPABASE_URL),
+        'import.meta.env.VITE_SUPABASE_ANON_KEY': JSON.stringify(env.VITE_SUPABASE_ANON_KEY),
+      },
       resolve: {
         alias: {
           '@': path.resolve(__dirname, '.'),

@@ -16,6 +16,7 @@ View your app in AI Studio: https://ai.studio/apps/drive/13PZlodUxkvDtcRzuy7ntMz
 - 🔄 **Offline Support** - Works offline with service workers
 - ⚡ **Fast & Responsive** - Optimized for all devices
 - 🔒 **Secure** - API keys are kept server-side, never exposed to clients
+- 👤 **User Authentication** - Sign up and sign in with Supabase
 
 ## Run Locally
 
@@ -36,7 +37,11 @@ View your app in AI Studio: https://ai.studio/apps/drive/13PZlodUxkvDtcRzuy7ntMz
    Create a `.env.local` file in the root directory:
    ```env
    GEMINI_API_KEY=your_gemini_api_key_here
+   VITE_SUPABASE_URL=https://oczaidmczhvdoqlktmfp.supabase.co
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
    ```
+   
+   **Note:** The Supabase credentials are already configured in the code, but you can override them with environment variables if needed.
 
 4. Run the development server:
 
@@ -147,7 +152,11 @@ fixit-ai/
 
 | Variable | Description | Required |
 |----------|-------------|----------|
-| `GEMINI_API_KEY` | Your Google Gemini API key | Yes |
+| `GEMINI_API_KEY` | Your Google Gemini API key (server-side only) | Yes |
+| `VITE_SUPABASE_URL` | Your Supabase project URL | Yes |
+| `VITE_SUPABASE_ANON_KEY` | Your Supabase anonymous key | Yes |
+
+**Note:** For Vercel deployment, add these as environment variables in your project settings.
 
 ## Technologies Used
 

@@ -23,7 +23,11 @@ Create a `.env.local` file (already in .gitignore):
 
 ```env
 GEMINI_API_KEY=your_api_key_here
+VITE_SUPABASE_URL=https://oczaidmczhvdoqlktmfp.supabase.co
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
 ```
+
+**Note:** Supabase credentials are already configured in the code, but you can override them with environment variables.
 
 ### 3. Push to GitHub
 
@@ -48,9 +52,10 @@ git push -u origin main
    - **Build Command**: `npm run build`
    - **Output Directory**: `dist`
    - **Install Command**: `npm install`
-5. Add Environment Variable:
-   - **Name**: `GEMINI_API_KEY`
-   - **Value**: Your Gemini API key
+5. Add Environment Variables:
+   - **Name**: `GEMINI_API_KEY` | **Value**: Your Gemini API key
+   - **Name**: `VITE_SUPABASE_URL` | **Value**: `https://oczaidmczhvdoqlktmfp.supabase.co`
+   - **Name**: `VITE_SUPABASE_ANON_KEY` | **Value**: Your Supabase anon key
 6. Click "Deploy"
 
 #### Option B: Via Vercel CLI

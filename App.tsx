@@ -1,9 +1,11 @@
 import React, { useState, useRef } from 'react';
-import { Camera, Upload, CheckCircle, ArrowRight, RotateCcw, AlertTriangle, Hammer, Download, X, Sparkles } from 'lucide-react';
+import { Camera, Upload, CheckCircle, ArrowRight, RotateCcw, AlertTriangle, Hammer, Download, X, Sparkles, LogIn, LogOut, User } from 'lucide-react';
 import { AppStep, ImageFile } from './types';
 import { generateFix } from './services/geminiService';
 import { Button } from './components/Button';
 import { BeforeAfterSlider } from './components/BeforeAfterSlider';
+import { useAuth } from './contexts/AuthContext';
+import { AuthForm } from './components/AuthForm';
 
 const App: React.FC = () => {
   const [step, setStep] = useState<AppStep>(AppStep.UPLOAD);
@@ -12,7 +14,9 @@ const App: React.FC = () => {
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAuthForm, setShowAuthForm] = useState(false);
 
+  const { user, loading: authLoading, signOut } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -79,6 +83,53 @@ const App: React.FC = () => {
     }
   };
 
+  const handleSignOut = async () => {
+    await signOut();
+    handleReset();
+  };
+
+  // Show loading state while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="relative w-16 h-16 mx-auto mb-4">
+            <div className="absolute inset-0 border-4 border-slate-100 rounded-full"></div>
+            <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
+          </div>
+          <p className="text-slate-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show auth form if not signed in
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
+        <header className="bg-white border-b border-slate-200">
+          <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="bg-blue-600 p-2 rounded-lg text-white">
+                <Sparkles size={20} />
+              </div>
+              <span className="font-bold text-xl text-slate-800 tracking-tight">FixIt AI</span>
+            </div>
+          </div>
+        </header>
+        <main className="flex-grow flex items-center justify-center p-4">
+          <div className="w-full max-w-md">
+            <div className="text-center mb-8">
+              <h1 className="text-3xl font-bold text-slate-800 mb-3">Welcome to FixIt AI</h1>
+              <p className="text-slate-500">Sign in to start visualizing construction repairs and room cleanups.</p>
+            </div>
+            <AuthForm />
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       {/* Header */}
@@ -90,8 +141,19 @@ const App: React.FC = () => {
             </div>
             <span className="font-bold text-xl text-slate-800 tracking-tight">FixIt AI</span>
           </div>
-          <div className="text-xs font-medium text-slate-400 bg-slate-100 px-3 py-1 rounded-full">
-            Repair & Cleanup Visualizer
+          <div className="flex items-center space-x-4">
+            <div className="flex items-center space-x-2 text-sm text-slate-600">
+              <User size={16} />
+              <span className="hidden sm:inline">{user.email}</span>
+            </div>
+            <Button
+              variant="outline"
+              onClick={handleSignOut}
+              icon={<LogOut size={16} />}
+            >
+              <span className="hidden sm:inline">Sign Out</span>
+              <span className="sm:hidden">Out</span>
+            </Button>
           </div>
         </div>
       </header>
@@ -263,6 +325,9 @@ const App: React.FC = () => {
           </div>
         )}
       </main>
+      
+      {/* Auth Form Modal */}
+      {showAuthForm && <AuthForm onClose={() => setShowAuthForm(false)} />}
     </div>
   );
 };
