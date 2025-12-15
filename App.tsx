@@ -20,7 +20,6 @@ const MainApp: React.FC = () => {
   const [resultImage, setResultImage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
-  const [showAuthForm, setShowAuthForm] = useState(false);
   const [showTokenPurchase, setShowTokenPurchase] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
