@@ -137,7 +137,12 @@ const App: React.FC = () => {
     }
   };
 
-  const handleSignOut = async () => {
+  const handleSignOut = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    setShowSettings(false);
     await signOut();
     handleReset();
   };
@@ -250,7 +255,10 @@ const App: React.FC = () => {
           
           {/* Settings Dropdown */}
           {showSettings && (
-            <div className="absolute top-full right-4 mt-2 bg-white rounded-xl shadow-lg border border-slate-200 p-2 min-w-[200px] z-50">
+            <div 
+              className="absolute top-full right-4 mt-2 bg-white rounded-xl shadow-lg border border-slate-200 p-2 min-w-[200px] z-50"
+              onClick={(e) => e.stopPropagation()}
+            >
               {userIsAdmin && (
                 <button
                   onClick={() => {
@@ -258,14 +266,20 @@ const App: React.FC = () => {
                     setShowAdminPage(true);
                   }}
                   className="w-full text-left px-4 py-2 rounded-lg hover:bg-slate-100 flex items-center space-x-2 text-slate-700"
+                  type="button"
                 >
                   <Shield size={16} />
                   <span>Admin Panel</span>
                 </button>
               )}
               <button
-                onClick={handleSignOut}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleSignOut(e);
+                }}
                 className="w-full text-left px-4 py-2 rounded-lg hover:bg-slate-100 flex items-center space-x-2 text-red-600"
+                type="button"
               >
                 <LogOut size={16} />
                 <span>Sign Out</span>
