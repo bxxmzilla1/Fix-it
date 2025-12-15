@@ -236,21 +236,16 @@ const App: React.FC = () => {
             {userIsAdmin && (
               <Button
                 variant="secondary"
-                onClick={() => setShowAdminPage(true)}
+                onClick={() => {
+                  setShowSettings(false);
+                  setShowAdminPage(true);
+                }}
                 icon={<Shield size={16} />}
                 className="hidden sm:flex"
               >
                 Admin
               </Button>
             )}
-            <Button
-              variant="outline"
-              onClick={handleSignOut}
-              icon={<LogOut size={16} />}
-            >
-              <span className="hidden sm:inline">Sign Out</span>
-              <span className="sm:hidden">Out</span>
-            </Button>
           </div>
           
           {/* Settings Dropdown */}
