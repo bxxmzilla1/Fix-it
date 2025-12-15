@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
-import { Camera, Upload, CheckCircle, ArrowRight, RotateCcw, AlertTriangle, Hammer, Download, X, Sparkles, LogIn, LogOut, User, Coins, ShoppingCart, Shield } from 'lucide-react';
+import { Routes, Route, useLocation } from 'react-router-dom';
+import { Camera, Upload, CheckCircle, ArrowRight, RotateCcw, AlertTriangle, Hammer, Download, X, Sparkles, LogIn, LogOut, User, Coins, ShoppingCart } from 'lucide-react';
 import { AppStep, ImageFile } from './types';
 import { generateFix } from './services/geminiService';
 import { Button } from './components/Button';
@@ -8,11 +9,11 @@ import { useAuth } from './contexts/AuthContext';
 import { AuthForm } from './components/AuthForm';
 import { TokenPurchase } from './components/TokenPurchase';
 import { AdminPage } from './components/AdminPage';
+import { AdminLogin } from './components/AdminLogin';
 import { Toast, ToastType } from './components/Toast';
 import { TOKEN_COST_PER_GENERATION } from './services/tokenService';
-import { isAdmin } from './services/adminService';
 
-const App: React.FC = () => {
+const MainApp: React.FC = () => {
   const [step, setStep] = useState<AppStep>(AppStep.UPLOAD);
   const [originalImage, setOriginalImage] = useState<ImageFile | null>(null);
   const [prompt, setPrompt] = useState<string>('');
@@ -21,9 +22,7 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showAuthForm, setShowAuthForm] = useState(false);
   const [showTokenPurchase, setShowTokenPurchase] = useState(false);
-  const [showAdminPage, setShowAdminPage] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
-  const [userIsAdmin, setUserIsAdmin] = useState(false);
 
   const { user, loading: authLoading, signOut, tokenBalance, refreshTokenBalance } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -31,21 +30,6 @@ const App: React.FC = () => {
   const showToast = (message: string, type: ToastType = 'success') => {
     setToast({ message, type });
   };
-
-  // Check admin status when user changes
-  React.useEffect(() => {
-    if (user) {
-      isAdmin().then((adminStatus) => {
-        console.log('Admin status for', user.email, ':', adminStatus);
-        setUserIsAdmin(adminStatus);
-      }).catch((error) => {
-        console.error('Error checking admin status:', error);
-        setUserIsAdmin(false);
-      });
-    } else {
-      setUserIsAdmin(false);
-    }
-  }, [user]);
 
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -428,11 +412,6 @@ const App: React.FC = () => {
         />
       )}
 
-      {/* Admin Page */}
-      {showAdminPage && (
-        <AdminPage onClose={() => setShowAdminPage(false)} />
-      )}
-
       {/* Toast Notification */}
       {toast && (
         <Toast
@@ -443,6 +422,17 @@ const App: React.FC = () => {
         />
       )}
     </div>
+  );
+};
+
+// Main App Router Component
+const App: React.FC = () => {
+  return (
+    <Routes>
+      <Route path="/admin/login" element={<AdminLogin />} />
+      <Route path="/admin" element={<AdminPage />} />
+      <Route path="/*" element={<MainApp />} />
+    </Routes>
   );
 };
 

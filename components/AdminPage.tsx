@@ -1,14 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Users, DollarSign, TrendingUp, Clock, RefreshCw, ArrowLeft, Calendar } from 'lucide-react';
 import { Button } from './Button';
 import { isAdmin, getAllUsers, getRevenue, getPurchaseHistory, subscribeToPurchases, User, Purchase, RevenueStats } from '../services/adminService';
 import { useAuth } from '../contexts/AuthContext';
 
-interface AdminPageProps {
-  onClose: () => void;
-}
-
-export const AdminPage: React.FC<AdminPageProps> = ({ onClose }) => {
+export const AdminPage: React.FC = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [isUserAdmin, setIsUserAdmin] = useState(false);
@@ -20,8 +18,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onClose }) => {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
-    checkAdminAndLoadData();
-  }, []);
+    if (!authLoading) {
+      checkAdminAndLoadData();
+    }
+  }, [authLoading, user]);
 
   useEffect(() => {
     if (!isUserAdmin) return;
@@ -38,9 +38,22 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onClose }) => {
   }, [isUserAdmin]);
 
   const checkAdminAndLoadData = async () => {
+    if (!user) {
+      // Not signed in, redirect to login
+      navigate('/admin/login', { replace: true });
+      return;
+    }
+
     setLoading(true);
     const adminStatus = await isAdmin();
     setIsUserAdmin(adminStatus);
+
+    if (!adminStatus) {
+      // Not admin, redirect to login page
+      navigate('/admin/login', { replace: true });
+      setLoading(false);
+      return;
+    }
 
     if (adminStatus) {
       await loadAllData();
@@ -100,10 +113,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onClose }) => {
     setRefreshing(false);
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-        <div className="bg-white rounded-2xl p-8 text-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+        <div className="text-center">
           <div className="relative w-16 h-16 mx-auto mb-4">
             <div className="absolute inset-0 border-4 border-slate-100 rounded-full"></div>
             <div className="absolute inset-0 border-4 border-blue-600 rounded-full border-t-transparent animate-spin"></div>
@@ -115,26 +128,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onClose }) => {
   }
 
   if (!isUserAdmin) {
-    return (
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6">
-          <div className="text-center">
-            <div className="bg-red-100 p-3 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-              <Users size={32} className="text-red-600" />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-800 mb-2">Access Denied</h2>
-            <p className="text-slate-600 mb-6">You don't have permission to access the admin panel.</p>
-            <Button onClick={onClose} fullWidth>
-              Go Back
-            </Button>
-          </div>
-        </div>
-      </div>
-    );
+    return null; // Will redirect via useEffect
   }
 
   return (
-    <div className="fixed inset-0 bg-slate-50 z-50 overflow-y-auto">
+    <div className="min-h-screen bg-slate-50">
       <div className="max-w-7xl mx-auto p-6">
         {/* Header */}
         <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
@@ -142,10 +140,10 @@ export const AdminPage: React.FC<AdminPageProps> = ({ onClose }) => {
             <div className="flex items-center space-x-4">
               <Button
                 variant="outline"
-                onClick={onClose}
+                onClick={() => navigate('/')}
                 icon={<ArrowLeft size={18} />}
               >
-                Back
+                Back to App
               </Button>
               <div>
                 <h1 className="text-3xl font-bold text-slate-800">Admin Dashboard</h1>
