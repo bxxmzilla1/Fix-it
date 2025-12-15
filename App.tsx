@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Camera, Upload, CheckCircle, ArrowRight, RotateCcw, AlertTriangle, Hammer, Download, X, Sparkles, LogIn, LogOut, User, Coins, ShoppingCart, Settings, Shield } from 'lucide-react';
+import { Camera, Upload, CheckCircle, ArrowRight, RotateCcw, AlertTriangle, Hammer, Download, X, Sparkles, LogIn, LogOut, User, Coins, ShoppingCart, Shield } from 'lucide-react';
 import { AppStep, ImageFile } from './types';
 import { generateFix } from './services/geminiService';
 import { Button } from './components/Button';
@@ -22,7 +22,6 @@ const App: React.FC = () => {
   const [showAuthForm, setShowAuthForm] = useState(false);
   const [showTokenPurchase, setShowTokenPurchase] = useState(false);
   const [showAdminPage, setShowAdminPage] = useState(false);
-  const [showSettings, setShowSettings] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
   const [userIsAdmin, setUserIsAdmin] = useState(false);
 
@@ -48,19 +47,6 @@ const App: React.FC = () => {
     }
   }, [user]);
 
-  // Close settings dropdown when clicking outside
-  React.useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (showSettings && !(event.target as Element).closest('.settings-container')) {
-        setShowSettings(false);
-      }
-    };
-
-    if (showSettings) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => document.removeEventListener('mousedown', handleClickOutside);
-    }
-  }, [showSettings]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -137,12 +123,7 @@ const App: React.FC = () => {
     }
   };
 
-  const handleSignOut = async (e?: React.MouseEvent) => {
-    if (e) {
-      e.preventDefault();
-      e.stopPropagation();
-    }
-    setShowSettings(false);
+  const handleSignOut = async () => {
     await signOut();
     handleReset();
   };
@@ -200,7 +181,7 @@ const App: React.FC = () => {
             </div>
             <span className="font-bold text-xl text-slate-800 tracking-tight">FixIt AI</span>
           </div>
-          <div className="flex items-center space-x-3 settings-container">
+          <div className="flex items-center space-x-3">
             {/* Token Balance */}
             <div className="flex items-center space-x-2 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200">
               <Coins size={16} className="text-blue-600" />
@@ -228,64 +209,27 @@ const App: React.FC = () => {
               <User size={16} />
               <span className="hidden sm:inline">{user.email}</span>
             </div>
-            {/* Settings Button */}
-            <Button
-              variant="outline"
-              onClick={() => setShowSettings(!showSettings)}
-              icon={<Settings size={16} />}
-              className="hidden sm:flex"
-            >
-              Settings
-            </Button>
             {/* Admin Button (only for admins) */}
             {userIsAdmin && (
               <Button
                 variant="secondary"
-                onClick={() => {
-                  setShowSettings(false);
-                  setShowAdminPage(true);
-                }}
+                onClick={() => setShowAdminPage(true)}
                 icon={<Shield size={16} />}
                 className="hidden sm:flex"
               >
                 Admin
               </Button>
             )}
-          </div>
-          
-          {/* Settings Dropdown */}
-          {showSettings && (
-            <div 
-              className="absolute top-full right-4 mt-2 bg-white rounded-xl shadow-lg border border-slate-200 p-2 min-w-[200px] z-50"
-              onClick={(e) => e.stopPropagation()}
+            {/* Sign Out Button */}
+            <Button
+              variant="outline"
+              onClick={handleSignOut}
+              icon={<LogOut size={16} />}
             >
-              {userIsAdmin && (
-                <button
-                  onClick={() => {
-                    setShowSettings(false);
-                    setShowAdminPage(true);
-                  }}
-                  className="w-full text-left px-4 py-2 rounded-lg hover:bg-slate-100 flex items-center space-x-2 text-slate-700"
-                  type="button"
-                >
-                  <Shield size={16} />
-                  <span>Admin Panel</span>
-                </button>
-              )}
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  handleSignOut(e);
-                }}
-                className="w-full text-left px-4 py-2 rounded-lg hover:bg-slate-100 flex items-center space-x-2 text-red-600"
-                type="button"
-              >
-                <LogOut size={16} />
-                <span>Sign Out</span>
-              </button>
-            </div>
-          )}
+              <span className="hidden sm:inline">Sign Out</span>
+              <span className="sm:hidden">Out</span>
+            </Button>
+          </div>
         </div>
       </header>
 
