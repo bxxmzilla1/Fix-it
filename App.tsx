@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import { Camera, Upload, CheckCircle, ArrowRight, RotateCcw, AlertTriangle, Hammer, Download, X, Sparkles, LogIn, LogOut, User, Coins, ShoppingCart } from 'lucide-react';
 import { AppStep, ImageFile } from './types';
 import { generateFix } from './services/geminiService';
@@ -193,17 +193,6 @@ const MainApp: React.FC = () => {
               <User size={16} />
               <span className="hidden sm:inline">{user.email}</span>
             </div>
-            {/* Admin Button (only for admins) */}
-            {userIsAdmin && (
-              <Button
-                variant="secondary"
-                onClick={() => setShowAdminPage(true)}
-                icon={<Shield size={16} />}
-                className="hidden sm:flex"
-              >
-                Admin
-              </Button>
-            )}
             {/* Sign Out Button */}
             <Button
               variant="outline"
