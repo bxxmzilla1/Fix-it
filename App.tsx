@@ -36,7 +36,13 @@ const App: React.FC = () => {
   // Check admin status when user changes
   React.useEffect(() => {
     if (user) {
-      isAdmin().then(setUserIsAdmin);
+      isAdmin().then((adminStatus) => {
+        console.log('Admin status for', user.email, ':', adminStatus);
+        setUserIsAdmin(adminStatus);
+      }).catch((error) => {
+        console.error('Error checking admin status:', error);
+        setUserIsAdmin(false);
+      });
     } else {
       setUserIsAdmin(false);
     }

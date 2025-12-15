@@ -32,16 +32,33 @@ export interface RevenueStats {
  */
 export const isAdmin = async (): Promise<boolean> => {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return false;
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
+    if (userError || !user) {
+      console.log('No user found for admin check');
+      return false;
+    }
+
+    console.log('Checking admin status for user:', user.id, user.email);
 
     const { data, error } = await supabase
       .from('admin_users')
       .select('user_id')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle(); // Use maybeSingle instead of single to avoid error if no record
 
-    return !error && !!data;
+    if (error) {
+      console.error('Error checking admin_users table:', error);
+      // If table doesn't exist, return false
+      if (error.code === '42P01') {
+        console.warn('admin_users table does not exist. Run the migration first.');
+        return false;
+      }
+      return false;
+    }
+
+    const isAdminUser = !!data;
+    console.log('Admin check result:', isAdminUser);
+    return isAdminUser;
   } catch (error) {
     console.error('Error checking admin status:', error);
     return false;

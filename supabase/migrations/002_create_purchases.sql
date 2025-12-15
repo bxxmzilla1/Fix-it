@@ -45,11 +45,13 @@ CREATE POLICY "Admins can view admin users"
     )
   );
 
--- Policy: Only admins can insert admin users (you'll need to do this manually with service role)
--- For now, we'll allow users to check if they're admin
+-- Policy: Users can check if they are admin (needed for client-side admin check)
 CREATE POLICY "Users can check if they are admin"
   ON admin_users FOR SELECT
   USING (auth.uid() = user_id);
+
+-- Policy: Allow service role to insert admin users (for manual admin assignment)
+-- Note: This will be done via service role key, not through RLS
 
 -- Create index for faster queries
 CREATE INDEX IF NOT EXISTS idx_purchases_user_id ON purchases(user_id);
