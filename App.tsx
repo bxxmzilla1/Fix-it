@@ -7,6 +7,7 @@ import { BeforeAfterSlider } from './components/BeforeAfterSlider';
 import { useAuth } from './contexts/AuthContext';
 import { AuthForm } from './components/AuthForm';
 import { TokenPurchase } from './components/TokenPurchase';
+import { Toast, ToastType } from './components/Toast';
 import { TOKEN_COST_PER_GENERATION } from './services/tokenService';
 
 const App: React.FC = () => {
@@ -18,9 +19,14 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showAuthForm, setShowAuthForm] = useState(false);
   const [showTokenPurchase, setShowTokenPurchase] = useState(false);
+  const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
 
   const { user, loading: authLoading, signOut, tokenBalance, refreshTokenBalance } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const showToast = (message: string, type: ToastType = 'success') => {
+    setToast({ message, type });
+  };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -384,7 +390,20 @@ const App: React.FC = () => {
       
       {/* Token Purchase Modal */}
       {showTokenPurchase && (
-        <TokenPurchase onClose={() => setShowTokenPurchase(false)} />
+        <TokenPurchase 
+          onClose={() => setShowTokenPurchase(false)}
+          onShowToast={showToast}
+        />
+      )}
+
+      {/* Toast Notification */}
+      {toast && (
+        <Toast
+          message={toast.message}
+          type={toast.type}
+          onClose={() => setToast(null)}
+          duration={1000}
+        />
       )}
     </div>
   );

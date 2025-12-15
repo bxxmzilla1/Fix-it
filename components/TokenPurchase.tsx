@@ -4,6 +4,11 @@ import { Button } from './Button';
 import { useAuth } from '../contexts/AuthContext';
 import { addTokens } from '../services/tokenService';
 
+interface TokenPurchaseProps {
+  onClose: () => void;
+  onShowToast: (message: string, type?: 'success' | 'error' | 'info') => void;
+}
+
 interface TokenPackage {
   id: string;
   name: string;
@@ -42,12 +47,13 @@ interface TokenPurchaseProps {
   onClose: () => void;
 }
 
-export const TokenPurchase: React.FC<TokenPurchaseProps> = ({ onClose }) => {
+export const TokenPurchase: React.FC<TokenPurchaseProps> = ({ onClose, onShowToast }) => {
   const [selectedPackage, setSelectedPackage] = useState<TokenPackage | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
   const { refreshTokenBalance } = useAuth();
 
   const handlePurchase = async (pkg: TokenPackage) => {
+    setSelectedPackage(pkg);
     setIsProcessing(true);
     try {
       // TODO: Integrate with payment system (Stripe, PayPal, etc.)
@@ -62,16 +68,17 @@ export const TokenPurchase: React.FC<TokenPurchaseProps> = ({ onClose }) => {
       
       if (result.success) {
         await refreshTokenBalance();
-        alert(`Successfully purchased ${totalTokens} tokens!`);
+        onShowToast(`Successfully purchased ${totalTokens} tokens!`, 'success');
         onClose();
       } else {
-        alert(`Error: ${result.error || 'Failed to add tokens'}`);
+        onShowToast(`Error: ${result.error || 'Failed to add tokens'}`, 'error');
       }
     } catch (error: any) {
       console.error('Purchase error:', error);
-      alert(`Error processing purchase: ${error.message}`);
+      onShowToast(`Error processing purchase: ${error.message}`, 'error');
     } finally {
       setIsProcessing(false);
+      setSelectedPackage(null);
     }
   };
 
