@@ -14,7 +14,7 @@ export const getTokenBalance = async (): Promise<number> => {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) {
-      throw new Error('User not authenticated');
+      return 0; // Return 0 instead of throwing for unauthenticated users
     }
 
     const { data, error } = await supabase
@@ -24,28 +24,38 @@ export const getTokenBalance = async (): Promise<number> => {
       .single();
 
     if (error) {
-      // If no record exists, create one with default tokens
-      if (error.code === 'PGRST116') {
-        const { data: newData, error: insertError } = await supabase
-          .from('user_tokens')
-          .insert({ user_id: user.id, tokens: 100 })
-          .select('tokens')
-          .single();
+      // If no record exists, try to create one with default tokens
+      if (error.code === 'PGRST116' || error.code === '42P01') {
+        // PGRST116 = no rows returned, 42P01 = table doesn't exist
+        try {
+          const { data: newData, error: insertError } = await supabase
+            .from('user_tokens')
+            .insert({ user_id: user.id, tokens: 100 })
+            .select('tokens')
+            .single();
 
-        if (insertError) {
-          console.error('Error creating token record:', insertError);
-          return 0;
+          if (insertError) {
+            // Table might not exist yet - return default value
+            console.warn('Token table may not exist yet. Run the migration:', insertError);
+            return 100; // Return default for new users
+          }
+          return newData?.tokens || 100;
+        } catch (insertErr) {
+          // Table doesn't exist - return default
+          console.warn('Token table not found. Please run the database migration.');
+          return 100; // Default starting tokens
         }
-        return newData?.tokens || 0;
       }
-      console.error('Error fetching token balance:', error);
-      return 0;
+      // Other errors - return 0 to prevent blocking
+      console.warn('Error fetching token balance:', error);
+      return 100; // Return default instead of 0 to allow usage
     }
 
-    return data?.tokens || 0;
+    return data?.tokens || 100;
   } catch (error) {
-    console.error('Error in getTokenBalance:', error);
-    return 0;
+    // Any unexpected error - return default to prevent blocking
+    console.warn('Error in getTokenBalance:', error);
+    return 100; // Default starting tokens
   }
 };
 

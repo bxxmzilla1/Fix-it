@@ -24,8 +24,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const refreshTokenBalance = async () => {
     if (user) {
-      const balance = await getTokenBalance();
-      setTokenBalance(balance);
+      try {
+        const balance = await getTokenBalance();
+        setTokenBalance(balance);
+      } catch (error) {
+        console.error('Error refreshing token balance:', error);
+        // Set to 0 if there's an error (table might not exist yet)
+        setTokenBalance(0);
+      }
     } else {
       setTokenBalance(0);
     }
@@ -36,11 +42,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      if (session?.user) {
-        const balance = await getTokenBalance();
-        setTokenBalance(balance);
-      }
       setLoading(false);
+      // Fetch token balance asynchronously after loading is set to false
+      if (session?.user) {
+        refreshTokenBalance().catch(console.error);
+      }
     });
 
     // Listen for auth changes
@@ -49,24 +55,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } = supabase.auth.onAuthStateChange(async (_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
+      setLoading(false);
+      // Fetch token balance asynchronously after loading is set to false
       if (session?.user) {
-        const balance = await getTokenBalance();
-        setTokenBalance(balance);
+        refreshTokenBalance().catch(console.error);
       } else {
         setTokenBalance(0);
       }
-      setLoading(false);
     });
 
     return () => subscription.unsubscribe();
   }, []);
 
-  // Refresh token balance when user changes
+  // Refresh token balance when user changes (non-blocking)
   useEffect(() => {
-    if (user) {
-      refreshTokenBalance();
+    if (user && !loading) {
+      refreshTokenBalance().catch(console.error);
     }
-  }, [user]);
+  }, [user, loading]);
 
   const signUp = async (email: string, password: string) => {
     const { error } = await supabase.auth.signUp({
