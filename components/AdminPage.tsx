@@ -45,19 +45,9 @@ export const AdminPage: React.FC = () => {
     }
 
     setLoading(true);
-    const adminStatus = await isAdmin();
-    setIsUserAdmin(adminStatus);
-
-    if (!adminStatus) {
-      // Not admin, redirect to login page
-      navigate('/admin/login', { replace: true });
-      setLoading(false);
-      return;
-    }
-
-    if (adminStatus) {
-      await loadAllData();
-    }
+    // All authenticated users have admin access
+    setIsUserAdmin(true);
+    await loadAllData();
     setLoading(false);
   };
 

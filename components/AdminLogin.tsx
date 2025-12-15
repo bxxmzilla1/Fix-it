@@ -14,12 +14,9 @@ export const AdminLogin: React.FC = () => {
   useEffect(() => {
     const checkAdminStatus = async () => {
       if (user) {
-        const adminStatus = await isAdmin();
-        setIsUserAdmin(adminStatus);
-        if (adminStatus) {
-          // User is admin, redirect to admin page
-          navigate('/admin', { replace: true });
-        }
+        // All authenticated users have admin access
+        setIsUserAdmin(true);
+        navigate('/admin', { replace: true });
       }
       setCheckingAdmin(false);
     };
