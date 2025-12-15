@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Camera, Upload, CheckCircle, ArrowRight, RotateCcw, AlertTriangle, Hammer, Download, X, Sparkles, LogIn, LogOut, User, Coins, ShoppingCart } from 'lucide-react';
+import { Camera, Upload, CheckCircle, ArrowRight, RotateCcw, AlertTriangle, Hammer, Download, X, Sparkles, LogIn, LogOut, User, Coins, ShoppingCart, Settings, Shield } from 'lucide-react';
 import { AppStep, ImageFile } from './types';
 import { generateFix } from './services/geminiService';
 import { Button } from './components/Button';
@@ -7,8 +7,10 @@ import { BeforeAfterSlider } from './components/BeforeAfterSlider';
 import { useAuth } from './contexts/AuthContext';
 import { AuthForm } from './components/AuthForm';
 import { TokenPurchase } from './components/TokenPurchase';
+import { AdminPage } from './components/AdminPage';
 import { Toast, ToastType } from './components/Toast';
 import { TOKEN_COST_PER_GENERATION } from './services/tokenService';
+import { isAdmin } from './services/adminService';
 
 const App: React.FC = () => {
   const [step, setStep] = useState<AppStep>(AppStep.UPLOAD);
@@ -19,7 +21,10 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showAuthForm, setShowAuthForm] = useState(false);
   const [showTokenPurchase, setShowTokenPurchase] = useState(false);
+  const [showAdminPage, setShowAdminPage] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [toast, setToast] = useState<{ message: string; type: ToastType } | null>(null);
+  const [userIsAdmin, setUserIsAdmin] = useState(false);
 
   const { user, loading: authLoading, signOut, tokenBalance, refreshTokenBalance } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -27,6 +32,29 @@ const App: React.FC = () => {
   const showToast = (message: string, type: ToastType = 'success') => {
     setToast({ message, type });
   };
+
+  // Check admin status when user changes
+  React.useEffect(() => {
+    if (user) {
+      isAdmin().then(setUserIsAdmin);
+    } else {
+      setUserIsAdmin(false);
+    }
+  }, [user]);
+
+  // Close settings dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showSettings && !(event.target as Element).closest('.settings-container')) {
+        setShowSettings(false);
+      }
+    };
+
+    if (showSettings) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => document.removeEventListener('mousedown', handleClickOutside);
+    }
+  }, [showSettings]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
@@ -153,15 +181,15 @@ const App: React.FC = () => {
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans">
       {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-50">
-        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between">
+      <header className="bg-white border-b border-slate-200 sticky top-0 z-50 relative">
+        <div className="max-w-4xl mx-auto px-4 h-16 flex items-center justify-between relative">
           <div className="flex items-center space-x-2">
             <div className="bg-blue-600 p-2 rounded-lg text-white">
               <Sparkles size={20} />
             </div>
             <span className="font-bold text-xl text-slate-800 tracking-tight">FixIt AI</span>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 settings-container">
             {/* Token Balance */}
             <div className="flex items-center space-x-2 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200">
               <Coins size={16} className="text-blue-600" />
@@ -189,6 +217,26 @@ const App: React.FC = () => {
               <User size={16} />
               <span className="hidden sm:inline">{user.email}</span>
             </div>
+            {/* Settings Button */}
+            <Button
+              variant="outline"
+              onClick={() => setShowSettings(!showSettings)}
+              icon={<Settings size={16} />}
+              className="hidden sm:flex"
+            >
+              Settings
+            </Button>
+            {/* Admin Button (only for admins) */}
+            {userIsAdmin && (
+              <Button
+                variant="secondary"
+                onClick={() => setShowAdminPage(true)}
+                icon={<Shield size={16} />}
+                className="hidden sm:flex"
+              >
+                Admin
+              </Button>
+            )}
             <Button
               variant="outline"
               onClick={handleSignOut}
@@ -198,6 +246,31 @@ const App: React.FC = () => {
               <span className="sm:hidden">Out</span>
             </Button>
           </div>
+          
+          {/* Settings Dropdown */}
+          {showSettings && (
+            <div className="absolute top-full right-4 mt-2 bg-white rounded-xl shadow-lg border border-slate-200 p-2 min-w-[200px] z-50">
+              {userIsAdmin && (
+                <button
+                  onClick={() => {
+                    setShowSettings(false);
+                    setShowAdminPage(true);
+                  }}
+                  className="w-full text-left px-4 py-2 rounded-lg hover:bg-slate-100 flex items-center space-x-2 text-slate-700"
+                >
+                  <Shield size={16} />
+                  <span>Admin Panel</span>
+                </button>
+              )}
+              <button
+                onClick={handleSignOut}
+                className="w-full text-left px-4 py-2 rounded-lg hover:bg-slate-100 flex items-center space-x-2 text-red-600"
+              >
+                <LogOut size={16} />
+                <span>Sign Out</span>
+              </button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -394,6 +467,11 @@ const App: React.FC = () => {
           onClose={() => setShowTokenPurchase(false)}
           onShowToast={showToast}
         />
+      )}
+
+      {/* Admin Page */}
+      {showAdminPage && (
+        <AdminPage onClose={() => setShowAdminPage(false)} />
       )}
 
       {/* Toast Notification */}

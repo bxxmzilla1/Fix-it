@@ -3,6 +3,7 @@ import { X, Coins, Check, Sparkles } from 'lucide-react';
 import { Button } from './Button';
 import { useAuth } from '../contexts/AuthContext';
 import { addTokens } from '../services/tokenService';
+import { recordPurchase } from '../services/adminService';
 
 interface TokenPurchaseProps {
   onClose: () => void;
@@ -67,6 +68,15 @@ export const TokenPurchase: React.FC<TokenPurchaseProps> = ({ onClose, onShowToa
       const result = await addTokens(totalTokens);
       
       if (result.success) {
+        // Record the purchase transaction
+        await recordPurchase(
+          pkg.name,
+          pkg.tokens,
+          pkg.bonus || 0,
+          totalTokens,
+          pkg.price
+        );
+        
         await refreshTokenBalance();
         onShowToast(`Successfully purchased ${totalTokens} tokens!`, 'success');
         onClose();
