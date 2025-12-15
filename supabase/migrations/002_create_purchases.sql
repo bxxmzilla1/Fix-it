@@ -54,7 +54,8 @@ CREATE POLICY "Users can check if they are admin"
 -- Create index for faster queries
 CREATE INDEX IF NOT EXISTS idx_purchases_user_id ON purchases(user_id);
 CREATE INDEX IF NOT EXISTS idx_purchases_created_at ON purchases(created_at);
-CREATE INDEX IF NOT EXISTS idx_purchases_date ON purchases(DATE(created_at));
+-- Note: DATE() function is not immutable, so we'll use created_at directly for date filtering
+-- Date filtering can be done with range queries on created_at instead
 
 -- Function to get revenue for a date range
 CREATE OR REPLACE FUNCTION get_revenue(start_date TIMESTAMP WITH TIME ZONE, end_date TIMESTAMP WITH TIME ZONE)
