@@ -17,6 +17,7 @@ View your app in AI Studio: https://ai.studio/apps/drive/13PZlodUxkvDtcRzuy7ntMz
 - ⚡ **Fast & Responsive** - Optimized for all devices
 - 🔒 **Secure** - API keys are kept server-side, never exposed to clients
 - 👤 **User Authentication** - Sign up and sign in with Supabase
+- 🪙 **Token System** - Each generation costs 30 tokens (100 free tokens for new users)
 
 ## Run Locally
 
@@ -155,8 +156,19 @@ fixit-ai/
 | `GEMINI_API_KEY` | Your Google Gemini API key (server-side only) | Yes |
 | `VITE_SUPABASE_URL` | Your Supabase project URL | Yes |
 | `VITE_SUPABASE_ANON_KEY` | Your Supabase anonymous key | Yes |
+| `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase service role key (for API routes) | Yes |
 
 **Note:** For Vercel deployment, add these as environment variables in your project settings.
+
+## Token System
+
+The app uses a tokenized system where each image generation costs **30 tokens**:
+- New users receive **100 tokens** (3 free generations) when they sign up
+- Token balance is displayed in the header
+- Users cannot generate images without sufficient tokens
+- See [TOKEN_SYSTEM.md](./TOKEN_SYSTEM.md) for setup instructions
+
+**Important:** You must run the database migration in Supabase to enable the token system. See `supabase/migrations/001_create_user_tokens.sql`.
 
 ## Technologies Used
 

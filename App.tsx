@@ -1,11 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { Camera, Upload, CheckCircle, ArrowRight, RotateCcw, AlertTriangle, Hammer, Download, X, Sparkles, LogIn, LogOut, User } from 'lucide-react';
+import { Camera, Upload, CheckCircle, ArrowRight, RotateCcw, AlertTriangle, Hammer, Download, X, Sparkles, LogIn, LogOut, User, Coins } from 'lucide-react';
 import { AppStep, ImageFile } from './types';
 import { generateFix } from './services/geminiService';
 import { Button } from './components/Button';
 import { BeforeAfterSlider } from './components/BeforeAfterSlider';
 import { useAuth } from './contexts/AuthContext';
 import { AuthForm } from './components/AuthForm';
+import { TOKEN_COST_PER_GENERATION } from './services/tokenService';
 
 const App: React.FC = () => {
   const [step, setStep] = useState<AppStep>(AppStep.UPLOAD);
@@ -16,7 +17,7 @@ const App: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showAuthForm, setShowAuthForm] = useState(false);
 
-  const { user, loading: authLoading, signOut } = useAuth();
+  const { user, loading: authLoading, signOut, tokenBalance, refreshTokenBalance } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -48,17 +49,28 @@ const App: React.FC = () => {
   const handleGenerate = async () => {
     if (!originalImage || !prompt.trim()) return;
 
+    // Check if user has enough tokens
+    if (tokenBalance < TOKEN_COST_PER_GENERATION) {
+      setError(`Insufficient tokens! You need ${TOKEN_COST_PER_GENERATION} tokens to generate an image, but you only have ${tokenBalance} tokens.`);
+      return;
+    }
+
     setIsLoading(true);
     setStep(AppStep.PROCESSING);
     setError(null);
 
     try {
-      const generatedImage = await generateFix(originalImage, prompt);
-      setResultImage(generatedImage);
+      const result = await generateFix(originalImage, prompt);
+      setResultImage(result.image);
+      // Update token balance after successful generation
+      await refreshTokenBalance();
       setStep(AppStep.RESULT);
-    } catch (err) {
-      setError("Failed to generate image. Please try again.");
+    } catch (err: any) {
+      const errorMessage = err.message || "Failed to generate image. Please try again.";
+      setError(errorMessage);
       setStep(AppStep.DESCRIBE);
+      // Refresh token balance in case of error (to sync state)
+      await refreshTokenBalance();
     } finally {
       setIsLoading(false);
     }
@@ -142,6 +154,12 @@ const App: React.FC = () => {
             <span className="font-bold text-xl text-slate-800 tracking-tight">FixIt AI</span>
           </div>
           <div className="flex items-center space-x-4">
+            {/* Token Balance */}
+            <div className="flex items-center space-x-2 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200">
+              <Coins size={16} className="text-blue-600" />
+              <span className="text-sm font-semibold text-blue-700">{tokenBalance}</span>
+              <span className="text-xs text-blue-500 hidden sm:inline">tokens</span>
+            </div>
             <div className="flex items-center space-x-2 text-sm text-slate-600">
               <User size={16} />
               <span className="hidden sm:inline">{user.email}</span>
@@ -269,10 +287,26 @@ const App: React.FC = () => {
                       </p>
                     </div>
 
-                    <div className="mt-6 pt-6 border-t border-slate-100">
+                    <div className="mt-6 pt-6 border-t border-slate-100 space-y-3">
+                      {/* Token Cost Info */}
+                      <div className="flex items-center justify-between text-sm">
+                        <div className="flex items-center space-x-2 text-slate-600">
+                          <Coins size={14} />
+                          <span>Cost: <span className="font-semibold">{TOKEN_COST_PER_GENERATION} tokens</span></span>
+                        </div>
+                        <div className={`font-semibold ${tokenBalance >= TOKEN_COST_PER_GENERATION ? 'text-green-600' : 'text-red-600'}`}>
+                          Balance: {tokenBalance}
+                        </div>
+                      </div>
+                      {tokenBalance < TOKEN_COST_PER_GENERATION && (
+                        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700 text-sm">
+                          <AlertTriangle size={14} className="inline mr-2" />
+                          Insufficient tokens. You need {TOKEN_COST_PER_GENERATION} tokens to generate an image.
+                        </div>
+                      )}
                       <Button 
                         onClick={handleGenerate} 
-                        disabled={!prompt.trim()} 
+                        disabled={!prompt.trim() || tokenBalance < TOKEN_COST_PER_GENERATION} 
                         fullWidth
                         icon={<ArrowRight size={20} />}
                       >
