@@ -121,14 +121,31 @@ export const addTokens = async (amount: number): Promise<{ success: boolean; new
     const currentBalance = await getTokenBalance();
     const newBalance = currentBalance + amount;
 
-    const { error } = await supabase
+    // Try to update first
+    const { error: updateError } = await supabase
       .from('user_tokens')
       .update({ tokens: newBalance })
       .eq('user_id', user.id);
 
-    if (error) {
-      console.error('Error adding tokens:', error);
-      return { success: false, newBalance: currentBalance, error: error.message };
+    if (updateError) {
+      // If update fails (record doesn't exist), try to insert
+      if (updateError.code === 'PGRST116' || updateError.code === '42P01') {
+        const { data: insertData, error: insertError } = await supabase
+          .from('user_tokens')
+          .insert({ user_id: user.id, tokens: newBalance })
+          .select('tokens')
+          .single();
+
+        if (insertError) {
+          console.error('Error creating token record:', insertError);
+          return { success: false, newBalance: currentBalance, error: insertError.message };
+        }
+
+        return { success: true, newBalance: insertData?.tokens || newBalance };
+      }
+
+      console.error('Error adding tokens:', updateError);
+      return { success: false, newBalance: currentBalance, error: updateError.message };
     }
 
     return { success: true, newBalance };

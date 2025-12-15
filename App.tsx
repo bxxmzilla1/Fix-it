@@ -1,11 +1,12 @@
 import React, { useState, useRef } from 'react';
-import { Camera, Upload, CheckCircle, ArrowRight, RotateCcw, AlertTriangle, Hammer, Download, X, Sparkles, LogIn, LogOut, User, Coins } from 'lucide-react';
+import { Camera, Upload, CheckCircle, ArrowRight, RotateCcw, AlertTriangle, Hammer, Download, X, Sparkles, LogIn, LogOut, User, Coins, ShoppingCart } from 'lucide-react';
 import { AppStep, ImageFile } from './types';
 import { generateFix } from './services/geminiService';
 import { Button } from './components/Button';
 import { BeforeAfterSlider } from './components/BeforeAfterSlider';
 import { useAuth } from './contexts/AuthContext';
 import { AuthForm } from './components/AuthForm';
+import { TokenPurchase } from './components/TokenPurchase';
 import { TOKEN_COST_PER_GENERATION } from './services/tokenService';
 
 const App: React.FC = () => {
@@ -16,6 +17,7 @@ const App: React.FC = () => {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [showAuthForm, setShowAuthForm] = useState(false);
+  const [showTokenPurchase, setShowTokenPurchase] = useState(false);
 
   const { user, loading: authLoading, signOut, tokenBalance, refreshTokenBalance } = useAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -153,13 +155,30 @@ const App: React.FC = () => {
             </div>
             <span className="font-bold text-xl text-slate-800 tracking-tight">FixIt AI</span>
           </div>
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
             {/* Token Balance */}
             <div className="flex items-center space-x-2 bg-blue-50 px-3 py-1.5 rounded-lg border border-blue-200">
               <Coins size={16} className="text-blue-600" />
               <span className="text-sm font-semibold text-blue-700">{tokenBalance}</span>
               <span className="text-xs text-blue-500 hidden sm:inline">tokens</span>
             </div>
+            {/* Buy Tokens Button */}
+            <Button
+              variant="secondary"
+              onClick={() => setShowTokenPurchase(true)}
+              icon={<ShoppingCart size={16} />}
+              className="hidden sm:flex"
+            >
+              Buy Tokens
+            </Button>
+            <Button
+              variant="secondary"
+              onClick={() => setShowTokenPurchase(true)}
+              icon={<ShoppingCart size={16} />}
+              className="sm:hidden"
+            >
+              Buy
+            </Button>
             <div className="flex items-center space-x-2 text-sm text-slate-600">
               <User size={16} />
               <span className="hidden sm:inline">{user.email}</span>
@@ -362,6 +381,11 @@ const App: React.FC = () => {
       
       {/* Auth Form Modal */}
       {showAuthForm && <AuthForm onClose={() => setShowAuthForm(false)} />}
+      
+      {/* Token Purchase Modal */}
+      {showTokenPurchase && (
+        <TokenPurchase onClose={() => setShowTokenPurchase(false)} />
+      )}
     </div>
   );
 };
